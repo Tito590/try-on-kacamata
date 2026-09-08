@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-6c45d3e1-7377-4fe5-b999-535f35a392d8/styles.css">
+<script src="_ds/organic-6c45d3e1-7377-4fe5-b999-535f35a392d8/_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--color-bg)}</style>
+</helmet>
+<div style="min-height:100vh;font-family:var(--font-body);color:var(--color-text);padding:var(--space-6) var(--space-6) var(--space-8)">
+  <div style="max-width:1240px;margin:0 auto">
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--space-4);row-gap:var(--space-5);justify-content:space-between;margin-bottom:var(--space-5)">
+      <div style="min-width:280px;flex:1 1 420px">
+        <span class="tag tag-accent-2" style="margin-bottom:10px;display:inline-block">Virtual try-on · kacamata</span>
+        <h1 style="font-family:var(--font-heading);font-size:clamp(28px,4vw,42px);line-height:1.15;margin:8px 0 0">Coba framenya lewat kamera</h1>
+        <p style="margin:10px 0 0;max-width:52ch;color:var(--color-neutral-700);text-wrap:pretty">Foto produk asli, menempel dan mengikuti posisi wajah secara real-time.</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;flex:0 0 auto">
+        <button class="btn btn-primary" style="white-space:nowrap" onClick="{{ onStart }}">{{ camLabel }}</button>
+        <button class="btn btn-secondary" style="white-space:nowrap" onClick="{{ onShot }}">Ambil foto</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:var(--space-5);align-items:start">
+      <div>
+        <div style="position:relative;border-radius:var(--radius-lg);overflow:hidden;background:var(--color-neutral-800);box-shadow:var(--shadow-lg);aspect-ratio:4/3">
+          <canvas ref="{{ canvasRef }}" width="1080" height="810" style="width:100%;height:100%;display:block"></canvas>
+          <video ref="{{ videoRef }}" playsInline muted style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></video>
+          <div style="position:absolute;left:14px;top:14px;display:flex;gap:8px">
+            <span class="tag tag-accent">Wayfarer Klasik</span>
+            <span class="tag tag-neutral">{{ colorName }}</span>
+          </div>
+          <div style="position:absolute;inset:0;display:{{ noticeDisplay }};align-items:center;justify-content:center;padding:24px;text-align:center;background:rgba(32,30,29,.72)">
+            <p style="max-width:34ch;color:#f5ead8;font-size:15px;line-height:1.5;margin:0">{{ notice }}</p>
+          </div>
+        </div>
+        <p style="margin:12px 2px 0;font-size:12px;color:var(--color-neutral-600)">Overlay dari foto produk transparan, disejajarkan ke titik mata. Warna selain hitam adalah tint simulasi, bukan warna asli produk.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="card elev-sm" style="padding:var(--space-4)">
+          <div class="card-kicker">Frame</div>
+          <div class="card-title" style="font-size:17px;margin-bottom:12px">Warna</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <sc-for list="{{ colors }}" as="c" hint-placeholder-count="5">
+              <button onClick="{{ c.pick }}" title="{{ c.name }}" style="width:34px;height:34px;border-radius:999px;flex:none;background:{{ c.swatch }};cursor:pointer;border:2px solid {{ c.border }};box-shadow:0 0 0 {{ c.ring }}px var(--color-accent-2-300)"></button>
+            </sc-for>
+          </div>
+          <p style="margin:10px 0 0;font-size:13px;color:var(--color-neutral-700)">{{ colorName }}</p>
+        </div>
+
+        <div class="card elev-sm" style="padding:var(--space-4)">
+          <div class="card-kicker">Ukuran & posisi</div>
+          <div class="card-title" style="font-size:17px;margin-bottom:14px">Sesuaikan tampilan</div>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--color-neutral-700)"><span>Lebar frame</span><span>{{ widthPct }}%</span></div>
+            <input type="range" min="70" max="140" value="{{ widthPct }}" onChange="{{ onWidth }}" style="width:100%">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--color-neutral-700)"><span>Posisi vertikal</span><span>{{ vOffset }}</span></div>
+            <input type="range" min="-30" max="30" value="{{ vOffset }}" onChange="{{ onVOffset }}" style="width:100%">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const COLORS = [
+  { id: "black", name: "Hitam matte (asli)", swatch: "#1c1a19", border: "#050505", mult: null },
+  { id: "tort", name: "Tortoise gelap (simulasi)", swatch: "#5c3a1f", border: "#3a2412", mult: "#6b4423" },
+  { id: "navy", name: "Navy (simulasi)", swatch: "#28324a", border: "#161d2c", mult: "#2b3f66" },
+  { id: "olive", name: "Olive (simulasi)", swatch: "#4a5330", border: "#2e351e", mult: "#556b3a" },
+  { id: "wine", name: "Burgundy (simulasi)", swatch: "#5a1f2a", border: "#38121a", mult: "#7a2836" }
+];
+// anchor points measured on assets/kacamata-front.png (820x260): lens-center pupils
+const IMG_W = 820, IMG_H = 260;
+const ANCHOR_A = { x: 225, y: 148 };
+const ANCHOR_B = { x: 595, y: 148 };
+
+class Component extends DCLogic {
+  state = { color: "black", widthPct: 100, vOffset: 0, running: false, notice: "Tekan “Nyalakan kamera” untuk mulai. Video tidak dikirim ke mana-mana." };
+
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef();
+    this.videoRef = React.createRef();
+    this.pts = null;
+    this.tintCache = {};
+    this.img = new Image();
+    this.img.src = "assets/kacamata-front.png";
+  }
+
+  componentDidMount() { this.loop(); }
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+  }
+
+  async start() {
+    if (this.state.running) {
+      if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+      this.stream = null;
+      this.setState({ running: false, notice: "Kamera dimatikan." });
+      return;
+    }
+    this.setState({ notice: "Menyiapkan kamera dan pendeteksi wajah…" });
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 960, facingMode: "user" }, audio: false });
+      const v = this.videoRef.current;
+      v.srcObject = this.stream; await v.play();
+      this.setState({ running: true, notice: "" });
+      this.initFace();
+    } catch (e) {
+      this.setState({ notice: "Kamera tidak bisa diakses: " + (e && e.message ? e.message : e) });
+    }
+  }
+
+  async initFace() {
+    if (this.landmarker) return;
+    try {
+      const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+      const fs = await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+      this.landmarker = await vision.FaceLandmarker.createFromOptions(fs, {
+        baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task", delegate: "GPU" },
+        runningMode: "VIDEO", numFaces: 1
+      });
+    } catch (e) {
+      this.setState({ notice: "Deteksi wajah gagal dimuat. Coba muat ulang halaman." });
+    }
+  }
+
+  detect(v, W, H, dx, dy, dw, dh) {
+    if (!this.landmarker) return;
+    try {
+      const res = this.landmarker.detectForVideo(v, performance.now());
+      const lm = res && res.faceLandmarks && res.faceLandmarks[0];
+      if (!lm) { this.pts = null; return; }
+      // map through the SAME cover-fit transform used to draw the video, so landmark scale matches the canvas exactly
+      const flip = p => ({ x: dx + (1 - p.x) * dw, y: dy + p.y * dh });
+      const a = flip(lm[263]), b = flip(lm[362]), c = flip(lm[33]), d = flip(lm[133]);
+      const pA = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const pB = { x: (c.x + d.x) / 2, y: (c.y + d.y) / 2 };
+      // always order left-to-right by screen x so rotation never flips 180
+      this.pts = pA.x <= pB.x ? { left: pA, right: pB } : { left: pB, right: pA };
+    } catch (e) { /* skip frame */ }
+  }
+
+  getTinted(colorId) {
+    const C = COLORS.find(x => x.id === colorId);
+    if (!C.mult) return this.img;
+    if (this.tintCache[colorId]) return this.tintCache[colorId];
+    const c = document.createElement("canvas"); c.width = IMG_W; c.height = IMG_H;
+    const cx = c.getContext("2d");
+    cx.drawImage(this.img, 0, 0);
+    cx.globalCompositeOperation = "multiply";
+    cx.fillStyle = C.mult; cx.fillRect(0, 0, IMG_W, IMG_H);
+    cx.globalCompositeOperation = "destination-in";
+    cx.drawImage(this.img, 0, 0);
+    this.tintCache[colorId] = c;
+    return c;
+  }
+
+  loop = () => {
+    this.raf = requestAnimationFrame(this.loop);
+    const c = this.canvasRef.current; if (!c) return;
+    const g = c.getContext("2d"); const W = c.width, H = c.height;
+    const v = this.videoRef.current;
+    if (this.state.running && v && v.readyState >= 2) {
+      g.save(); g.translate(W, 0); g.scale(-1, 1);
+      const vr = v.videoWidth / v.videoHeight, cr = W / H;
+      let dw = W, dh = H, dx = 0, dy = 0;
+      if (vr > cr) { dw = H * vr; dx = (W - dw) / 2; } else { dh = W / vr; dy = (H - dh) / 2; }
+      g.drawImage(v, dx, dy, dw, dh); g.restore();
+      this.detect(v, W, H, dx, dy, dw, dh);
+      if (this.pts && this.img.complete && this.img.naturalWidth) this.drawGlasses(g);
+    } else {
+      const bg = g.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, "#2c2725"); bg.addColorStop(1, "#181513");
+      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    }
+  };
+
+  drawGlasses(g) {
+    const p = this.pts;
+    const targetSpan = Math.hypot(p.left.x - p.right.x, p.left.y - p.right.y);
+    const rawAngle = Math.atan2(p.right.y - p.left.y, p.right.x - p.left.x);
+    // clamp so the frame can never rotate past a natural head-tilt range (defends against any upside-down flip)
+    const angle = Math.max(-0.6, Math.min(0.6, rawAngle));
+    const midX = (p.left.x + p.right.x) / 2;
+    const midY = (p.left.y + p.right.y) / 2 + this.state.vOffset * (targetSpan / 300);
+    const imgSpan = Math.hypot(ANCHOR_B.x - ANCHOR_A.x, ANCHOR_B.y - ANCHOR_A.y);
+    const scale = (targetSpan / imgSpan) * (this.state.widthPct / 100) * 1.28;
+    const imgMidX = (ANCHOR_A.x + ANCHOR_B.x) / 2, imgMidY = (ANCHOR_A.y + ANCHOR_B.y) / 2;
+    const src = this.getTinted(this.state.color);
+
+    g.save();
+    g.translate(midX, midY);
+    g.rotate(angle);
+    g.scale(scale, scale);
+    g.translate(-imgMidX, -imgMidY);
+    g.drawImage(src, 0, 0, IMG_W, IMG_H);
+    g.restore();
+  }
+
+  shot() {
+    const c = this.canvasRef.current; if (!c) return;
+    const a = document.createElement("a");
+    a.download = "kacamata-try-on.png";
+    a.href = c.toDataURL("image/png");
+    a.click();
+  }
+
+  renderVals() {
+    const C = COLORS.find(c => c.id === this.state.color);
+    return {
+      canvasRef: this.canvasRef, videoRef: this.videoRef,
+      camLabel: this.state.running ? "Matikan kamera" : "Nyalakan kamera",
+      notice: this.state.notice,
+      noticeDisplay: this.state.notice ? "flex" : "none",
+      colorName: C.name,
+      widthPct: this.state.widthPct,
+      vOffset: this.state.vOffset,
+      colors: COLORS.map(c => ({ name: c.name, swatch: c.swatch, border: c.border, ring: c.id === this.state.color ? 2 : 0, pick: () => this.setState({ color: c.id }) })),
+      onWidth: e => this.setState({ widthPct: parseInt(e.target.value, 10) }),
+      onVOffset: e => this.setState({ vOffset: parseInt(e.target.value, 10) }),
+      onStart: () => this.start(),
+      onShot: () => this.shot()
+    };
+  }
+}
+
+</script>
+</body>
+</html>

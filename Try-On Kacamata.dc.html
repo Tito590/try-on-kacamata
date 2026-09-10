@@ -10,9 +10,17 @@
 <helmet>
 <link rel="stylesheet" href="_ds/organic-6c45d3e1-7377-4fe5-b999-535f35a392d8/styles.css">
 <script src="_ds/organic-6c45d3e1-7377-4fe5-b999-535f35a392d8/_ds_bundle.js"></script>
-<style>body{margin:0;background:var(--color-bg)}</style>
+<style>
+body{margin:0;background:var(--color-bg)}
+.tryon-shell{min-height:100vh;font-family:var(--font-body);color:var(--color-text);padding:var(--space-6) var(--space-6) var(--space-8)}
+.tryon-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:var(--space-5);align-items:start}
+@media (max-width:760px){
+  .tryon-shell{padding:var(--space-4) var(--space-4) var(--space-6)}
+  .tryon-grid{grid-template-columns:1fr;gap:var(--space-4)}
+}
+</style>
 </helmet>
-<div style="min-height:100vh;font-family:var(--font-body);color:var(--color-text);padding:var(--space-6) var(--space-6) var(--space-8)">
+<div class="tryon-shell">
   <div style="max-width:1240px;margin:0 auto">
     <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--space-4);row-gap:var(--space-5);justify-content:space-between;margin-bottom:var(--space-5)">
       <div style="min-width:280px;flex:1 1 420px">
@@ -26,7 +34,7 @@
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:var(--space-5);align-items:start">
+    <div class="tryon-grid">
       <div>
         <div style="position:relative;border-radius:var(--radius-lg);overflow:hidden;background:var(--color-neutral-800);box-shadow:var(--shadow-lg);aspect-ratio:4/3">
           <canvas ref="{{ canvasRef }}" width="1080" height="810" style="width:100%;height:100%;display:block"></canvas>
